@@ -14,8 +14,7 @@ public class CorsConfiguracao implements WebMvcConfigurer {
 	@Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                .allowedOrigins("http://localhost:4200") //host do front
-                .allowedOrigins("http://congap.herokuapp.com") //host do front
+                .allowedOrigins("http://localhost:4200","http://congap.herokuapp.com") //host do front
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "TRACE", "CONNECT");
 
         logger.info("Configuracao CORS tem sido registrado");

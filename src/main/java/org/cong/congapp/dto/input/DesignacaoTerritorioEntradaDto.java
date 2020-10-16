@@ -18,6 +18,7 @@ public class DesignacaoTerritorioEntradaDto {
 	
 	private Long id;
 	private Long territorioId;
+	private String data;
 	private Long dirigenteId;
 	private List<Long> propriedades;
 	
@@ -32,6 +33,12 @@ public class DesignacaoTerritorioEntradaDto {
 	}
 	public void setTerritorioId(Long territorioId) {
 		this.territorioId = territorioId;
+	}
+	public String getData() {
+		return data;
+	}
+	public void setData(String data) {
+		this.data = data;
 	}
 	public Long getDirigenteId() {
 		return dirigenteId;
@@ -54,7 +61,7 @@ public class DesignacaoTerritorioEntradaDto {
 				.orElseThrow(() -> new RegistroNotFoundException("Nao foi possivel encontrar o id do territorio designado: " + this.territorioId));
 		Optional<Publicador> dirigente = publicadorRepository.findById(this.dirigenteId);
 		
-		LocalDate data = LocalDate.now();
+		LocalDate data = LocalDate.parse(this.data);
 		
 		List<TerritorioPropriedade> propriedades = new ArrayList<TerritorioPropriedade>();
 		TerritorioPropriedade propriedade;

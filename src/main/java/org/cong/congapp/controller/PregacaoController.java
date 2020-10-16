@@ -8,16 +8,10 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.cong.congapp.dto.input.DesignacaoPregacaoEntradaDto;
-import org.cong.congapp.dto.input.DesignacaoTerritorioEntradaDto;
 import org.cong.congapp.dto.output.DesignacaoPregacaoSaidaDto;
-import org.cong.congapp.dto.output.PropriedadesSaidaDto;
 import org.cong.congapp.dto.output.TerritorioDesignadoSaidaDto;
-import org.cong.congapp.dto.output.TerritorioListaSaidaDto;
 import org.cong.congapp.exception.RegistroNotFoundException;
 import org.cong.congapp.model.DesignacaoPregacao;
-import org.cong.congapp.model.DesignacaoTerritorio;
-import org.cong.congapp.model.TerritorioPrincipal;
-import org.cong.congapp.model.TerritorioPropriedade;
 import org.cong.congapp.repository.DesignacaoPregacaoRepository;
 import org.cong.congapp.repository.DesignacaoTerritorioRepository;
 import org.cong.congapp.repository.PregacaoRepository;
@@ -25,11 +19,6 @@ import org.cong.congapp.repository.PublicadorRepository;
 import org.cong.congapp.repository.TerritorioPrincipalRepository;
 import org.cong.congapp.repository.TerritorioPropriedadeRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -44,10 +33,10 @@ import org.springframework.web.bind.annotation.RestController;
 public class PregacaoController {
 	
 	@Autowired
-	TerritorioPrincipalRepository territPrincRepository;
+	TerritorioPrincipalRepository territorioRepository;
 	
 	@Autowired
-	TerritorioPropriedadeRepository territProprRepository;
+	TerritorioPropriedadeRepository propriedadeRepository;
 	
 	@Autowired
 	PublicadorRepository publicadorRepository;
@@ -61,60 +50,7 @@ public class PregacaoController {
 	@Autowired
 	DesignacaoPregacaoRepository desigPregRepository;
 	
-	@GetMapping("/lista-territorio")
-	public List<TerritorioListaSaidaDto> listarTerritorio(){
-		return TerritorioListaSaidaDto.listarTerritorio(territPrincRepository.findAll());
-	}
 	
-	@GetMapping("/lista-propriedade-territorio/{id}")
-	public List<PropriedadesSaidaDto> listarPropriedadeTerritorio(@PathVariable(value = "id") Long id) 
-			throws RegistroNotFoundException{
-		
-		TerritorioPrincipal principal = territPrincRepository.findById(id)
-				.orElseThrow(() -> new RegistroNotFoundException("Territorio sem cadastro com id: " + id));
-		
-		List<TerritorioPropriedade> territPropr =  territProprRepository.findByTerritorioPrincipal(principal);
-		
-		return PropriedadesSaidaDto.listarPropriedades(territPropr);
-	}
-	
-	@PostMapping("/designar-territorio")
-	public ResponseEntity<TerritorioDesignadoSaidaDto> criarDesignacaoTerritorio(@Valid @RequestBody DesignacaoTerritorioEntradaDto entrada) 
-			throws RegistroNotFoundException{
-		
-		DesignacaoTerritorio designacao = entrada.build(territPrincRepository, territProprRepository, publicadorRepository);
-		
-		designacao.setId(null);
-		
-		designacao = desigTerritRepository.save(designacao);
-		
-		return ResponseEntity.ok(new TerritorioDesignadoSaidaDto(designacao));
-	}
-	
-	@DeleteMapping("/remover-desig-territorio/{id}")
-	public Map<String, Boolean> removerDesignacaoTerritorio(@PathVariable(value = "id") Long id)
-		throws RegistroNotFoundException{
-		
-		DesignacaoTerritorio designacao = desigTerritRepository.findById(id)
-				.orElseThrow(() -> new RegistroNotFoundException("Designacao de Territorio nao encontrado com o id: " + id));
-		
-		desigTerritRepository.delete(designacao);
-		
-		Map<String, Boolean> response = new HashMap<>();
-		response.put("removido",Boolean.TRUE);
-		return response;
-	}
-	
-	@GetMapping(value="/territorios-selecionados/{page}/{count}",produces=MediaType.APPLICATION_JSON_VALUE)
-	public Page<TerritorioDesignadoSaidaDto> listarTerritoriosDesignados(
-			@PathVariable(value="page") int page,@PathVariable(value="count") int count){
-		
-		Pageable pages = PageRequest.of(page, count,Sort.Direction.DESC,"data","id");
-		
-		Page<DesignacaoTerritorio> lista = desigTerritRepository.findAll(pages);
-				
-		return TerritorioDesignadoSaidaDto.paginarTerritorios(lista,pregacaoRepository);
-	}
 	
 	@GetMapping("/territorios-designacao")
 	public List<TerritorioDesignadoSaidaDto> listarTerritoriosPorData(){
@@ -130,7 +66,7 @@ public class PregacaoController {
 	public ResponseEntity<DesignacaoPregacaoSaidaDto> criarDesignacaoPregacao(@Valid @RequestBody DesignacaoPregacaoEntradaDto entrada) 
 			throws RegistroNotFoundException{
 		
-		DesignacaoPregacao designacao = entrada.build(desigTerritRepository, territProprRepository,publicadorRepository);
+		DesignacaoPregacao designacao = entrada.build(desigTerritRepository, propriedadeRepository,publicadorRepository);
 		
 		designacao.setId(null);
 		
