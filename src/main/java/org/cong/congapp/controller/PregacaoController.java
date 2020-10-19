@@ -1,6 +1,7 @@
 package org.cong.congapp.controller;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -8,16 +9,27 @@ import java.util.Map;
 import javax.validation.Valid;
 
 import org.cong.congapp.dto.input.DesignacaoPregacaoEntradaDto;
+import org.cong.congapp.dto.input.PregacaoEntradaDto;
 import org.cong.congapp.dto.output.DesignacaoPregacaoSaidaDto;
+import org.cong.congapp.dto.output.ModalidadeSaidaDto;
+import org.cong.congapp.dto.output.MoradorSaidaDto;
+import org.cong.congapp.dto.output.PregacaoSaidaDto;
 import org.cong.congapp.dto.output.TerritorioDesignadoSaidaDto;
+import org.cong.congapp.dto.output.TipoContatoSaidaDto;
 import org.cong.congapp.exception.RegistroNotFoundException;
 import org.cong.congapp.model.DesignacaoPregacao;
+import org.cong.congapp.model.Pregacao;
+import org.cong.congapp.model.Publicador;
+import org.cong.congapp.model.TerritorioPropriedade;
 import org.cong.congapp.repository.DesignacaoPregacaoRepository;
 import org.cong.congapp.repository.DesignacaoTerritorioRepository;
+import org.cong.congapp.repository.ModalidadeRepository;
+import org.cong.congapp.repository.MoradorRepository;
 import org.cong.congapp.repository.PregacaoRepository;
 import org.cong.congapp.repository.PublicadorRepository;
 import org.cong.congapp.repository.TerritorioPrincipalRepository;
 import org.cong.congapp.repository.TerritorioPropriedadeRepository;
+import org.cong.congapp.repository.TipoContatoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -50,7 +62,14 @@ public class PregacaoController {
 	@Autowired
 	DesignacaoPregacaoRepository desigPregRepository;
 	
+	@Autowired
+	ModalidadeRepository modalidadeRepository;
 	
+	@Autowired
+	TipoContatoRepository tipoContatoRepository;
+	
+	@Autowired
+	MoradorRepository moradorRepository;
 	
 	@GetMapping("/territorios-designacao")
 	public List<TerritorioDesignadoSaidaDto> listarTerritoriosPorData(){
@@ -75,7 +94,7 @@ public class PregacaoController {
 		return ResponseEntity.ok(new DesignacaoPregacaoSaidaDto(designacao));
 	}
 	
-	@DeleteMapping("/remover-desig-pregacao/{id}")
+	@DeleteMapping("/remover-designacao/{id}")
 	public Map<String, Boolean> removerDesignacaoPregacao(@PathVariable(value = "id") Long id)
 		throws RegistroNotFoundException{
 		
@@ -87,5 +106,69 @@ public class PregacaoController {
 		Map<String, Boolean> response = new HashMap<>();
 		response.put("removido",Boolean.TRUE);
 		return response;
+	}
+	
+	@GetMapping("/atividade/{publicadorId}")
+	public DesignacaoPregacaoSaidaDto obterAtividade(@PathVariable(value = "publicadorId") Long publicadorId) 
+			throws RegistroNotFoundException{
+		
+		Publicador publicador = publicadorRepository.findById(publicadorId)
+				.orElseThrow(() -> new RegistroNotFoundException("Publicador nao encontrado com o id: " + publicadorId));
+		
+		
+		DesignacaoPregacao designacao = desigPregRepository.findByPublicadorAndData(publicador,LocalDate.now())
+				.orElseThrow(() -> new RegistroNotFoundException("Designacao nao encontrada para o publicador: " + publicador.getNome()));
+		
+		return new DesignacaoPregacaoSaidaDto(designacao);
+	}
+	
+	@GetMapping("/pregacoes/{principalId}/{nroPropriedade}")
+	public List<PregacaoSaidaDto> listarPregacao(@PathVariable(value = "principalId") Long principalId, 
+			@PathVariable(value = "nroPropriedade") String nroPropriedade){
+		
+		List<Pregacao> pregacoes = new ArrayList<Pregacao>();
+		
+		if(nroPropriedade != null && !nroPropriedade.equals("todosimoveis")) {
+			pregacoes = pregacaoRepository.findByTerritorioPropriedadeNumeroPropriedadeOrderByDataDesc(nroPropriedade);
+		}
+		else {
+			pregacoes = pregacaoRepository.findByTerritorioPropriedadeTerritorioPrincipalIdOrderByDataDesc(principalId);
+		}
+		
+		return PregacaoSaidaDto.listarPregacao(pregacoes);
+	}
+	
+	@PostMapping("/incluir")
+	public ResponseEntity<PregacaoSaidaDto> criarPregacao(@Valid @RequestBody PregacaoEntradaDto entrada) 
+			throws RegistroNotFoundException{
+		
+		Pregacao pregacao = entrada.build(propriedadeRepository,publicadorRepository,moradorRepository,modalidadeRepository,tipoContatoRepository);
+		
+		pregacao.setId(null);
+		
+		pregacao = pregacaoRepository.save(pregacao);
+		
+		return ResponseEntity.ok(new PregacaoSaidaDto(pregacao));
+	}
+	
+	@GetMapping("/modalidades")
+	public List<ModalidadeSaidaDto> listarModalidade(){
+		return ModalidadeSaidaDto.listarModalidade(modalidadeRepository.findAll());
+	}
+	
+	@GetMapping("/tipos-contato")
+	public List<TipoContatoSaidaDto> listarTipoContato(){
+		return TipoContatoSaidaDto.listarTipoContato(tipoContatoRepository.findAll());
+	}
+	
+	@GetMapping("/moradores/{logrSimples}/{nroPropriedade}")
+	public List<MoradorSaidaDto> obterMoradores(@PathVariable(value = "logrSimples") String logrSimples, 
+			@PathVariable(value = "nroPropriedade") String nroPropriedade) 
+			throws RegistroNotFoundException{
+		
+		TerritorioPropriedade propriedade = propriedadeRepository.findByTerritorioPrincipalLogrSimplesAndNumeroPropriedade(logrSimples,nroPropriedade)
+				.orElseThrow(() -> new RegistroNotFoundException("Propriedade nao encontrada: " + nroPropriedade));
+	
+		return MoradorSaidaDto.listarMoradores(moradorRepository.findByPropriedade(propriedade));
 	}
 }

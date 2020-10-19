@@ -6,6 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToOne;
 
 @Entity
 public class Morador implements Serializable {
@@ -13,22 +14,24 @@ public class Morador implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	@Id
-	@GeneratedValue(strategy=GenerationType.IDENTITY)
+	@GeneratedValue(strategy=GenerationType.AUTO)
 	private Long id;
 	
 	private String nome;
 	
+	@ManyToOne
 	private TipoContato tipoContato;
 	
-	private TerritorioPropriedade territPropriedade;
+	@ManyToOne
+	private TerritorioPropriedade propriedade;
 	
 	public Morador() {}
 	
-	public Morador(String nome, TipoContato tipoContato, TerritorioPropriedade territPropriedade) {
+	public Morador(String nome, TipoContato tipoContato, TerritorioPropriedade propriedade) {
 		super();
 		this.nome = nome;
 		this.tipoContato = tipoContato;
-		this.territPropriedade = territPropriedade;
+		this.propriedade = propriedade;
 	}
 
 	public Long getId() {
@@ -55,11 +58,11 @@ public class Morador implements Serializable {
 		this.tipoContato = tipoContato;
 	}
 
-	public TerritorioPropriedade getterritPropriedade() {
-		return territPropriedade;
+	public TerritorioPropriedade getPropriedade() {
+		return propriedade;
 	}
 
-	public void setterritPropriedade(TerritorioPropriedade territPropriedade) {
-		this.territPropriedade = territPropriedade;
+	public void setPropriedade(TerritorioPropriedade propriedade) {
+		this.propriedade = propriedade;
 	}
 }

@@ -32,9 +32,10 @@ public class Pregacao implements Serializable {
 	@ManyToOne
 	private Morador morador;
 	
+	@ManyToOne
 	private Modalidade modalidade;
 	
-	@ManyToOne
+	@ManyToOne(optional=true)
 	private Publicador dirigente;
 	
 	private String detalhes;
