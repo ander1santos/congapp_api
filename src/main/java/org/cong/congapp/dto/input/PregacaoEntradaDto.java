@@ -104,11 +104,17 @@ public class PregacaoEntradaDto {
 			TipoContatoRepository tipoContatoRepository) 
 		throws RegistroNotFoundException {
 		
+		if(this.publicador2Id == null) {this.publicador2Id = Long.valueOf(0);}
+		if(this.dirigenteId == null) {this.dirigenteId = Long.valueOf(0);}		
+		
 		LocalDateTime data = LocalDateTime.now();
 		
 		TerritorioPropriedade propriedade = propriedadeRepository.findByTerritorioPrincipalIdAndNumeroPropriedade(
 				this.territorioPrincipalId,this.numeroPropriedade)
 				.orElseThrow(() -> new RegistroNotFoundException("Nao foi possivel encontrar a propriedade: " + this.numeroPropriedade));
+		
+		propriedade.setUltimaPregacao(data);
+		propriedadeRepository.save(propriedade);
 		
 		Publicador publicador1 = publicadorRepository.findById(this.publicador1Id)
 				.orElseThrow(() -> new RegistroNotFoundException("Nao foi possivel encontrar o publicador com id: " + this.publicador1Id));
@@ -121,8 +127,6 @@ public class PregacaoEntradaDto {
 		Morador morador = moradorRepository.findByNomeAndPropriedade(this.nomeMorador,propriedade)
 				.orElse(new Morador(this.nomeMorador,tipoContato,propriedade));
 		morador.setTipoMorador(tipoContato);
-		
-		System.out.println("Id morador: " + morador.getId());
 		
 		Morador moradorGravado = moradorRepository.save(morador);
 		

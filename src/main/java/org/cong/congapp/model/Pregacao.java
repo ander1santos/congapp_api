@@ -59,8 +59,6 @@ public class Pregacao implements Serializable {
 		this.dataAlteracao = dataAlteracao;
 	}
 
-
-
 	public Long getId() {
 		return id;
 	}

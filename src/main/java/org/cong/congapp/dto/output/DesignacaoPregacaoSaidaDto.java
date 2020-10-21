@@ -28,7 +28,7 @@ public class DesignacaoPregacaoSaidaDto {
 		this.data = designacaoPregacao.getData();
 		this.publicador1Id = designacaoPregacao.getPublicador1().getId();
 		this.publicador1 = designacaoPregacao.getPublicador1().getNome();
-		this.publicador2Id = designacaoPregacao.getPublicador2() != null ? designacaoPregacao.getPublicador1().getId() : null;
+		this.publicador2Id = designacaoPregacao.getPublicador2() != null ? designacaoPregacao.getPublicador2().getId() : null;
 		this.publicador2 = designacaoPregacao.getPublicador2() != null ? designacaoPregacao.getPublicador2().getNome() : null;
 		this.principalId = designacaoPregacao.getTerritorio().getId();
 		this.territorioPrincipal = designacaoPregacao.getTerritorio().getLogrSimples();

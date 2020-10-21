@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.cong.congapp.model.Pregacao;
+import org.springframework.data.domain.Page;
 
 public class PregacaoSaidaDto {
 
@@ -116,5 +117,9 @@ public class PregacaoSaidaDto {
 		return pregacoes.stream()
 				.map(PregacaoSaidaDto::new)
 				.collect(Collectors.toList());
+	}
+
+	public static Page<PregacaoSaidaDto> paginarPregacao(Page<Pregacao> pregacoes) {
+		return pregacoes.map(PregacaoSaidaDto::new);
 	}
 }

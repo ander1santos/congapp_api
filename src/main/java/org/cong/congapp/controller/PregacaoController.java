@@ -1,7 +1,6 @@
 package org.cong.congapp.controller;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +30,10 @@ import org.cong.congapp.repository.TerritorioPrincipalRepository;
 import org.cong.congapp.repository.TerritorioPropriedadeRepository;
 import org.cong.congapp.repository.TipoContatoRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -122,20 +125,25 @@ public class PregacaoController {
 		return new DesignacaoPregacaoSaidaDto(designacao);
 	}
 	
-	@GetMapping("/pregacoes/{principalId}/{nroPropriedade}")
-	public List<PregacaoSaidaDto> listarPregacao(@PathVariable(value = "principalId") Long principalId, 
+	@GetMapping("/pregacoes/{page}/{count}/{principalId}/{nroPropriedade}")
+	public Page<PregacaoSaidaDto> listarPregacao(
+			@PathVariable(value="page") int page,
+			@PathVariable(value="count") int count,
+			@PathVariable(value = "principalId") Long principalId, 
 			@PathVariable(value = "nroPropriedade") String nroPropriedade){
 		
-		List<Pregacao> pregacoes = new ArrayList<Pregacao>();
+		Pageable pages = PageRequest.of(page, count,Sort.Direction.DESC,"data","id");
+		
+		Page<Pregacao> pregacoes;
 		
 		if(nroPropriedade != null && !nroPropriedade.equals("todosimoveis")) {
-			pregacoes = pregacaoRepository.findByTerritorioPropriedadeNumeroPropriedadeOrderByDataDesc(nroPropriedade);
+			pregacoes = pregacaoRepository.findByTerritorioPropriedadeNumeroPropriedade(nroPropriedade,pages);
 		}
 		else {
-			pregacoes = pregacaoRepository.findByTerritorioPropriedadeTerritorioPrincipalIdOrderByDataDesc(principalId);
+			pregacoes = pregacaoRepository.findByTerritorioPropriedadeTerritorioPrincipalId(principalId,pages);
 		}
 		
-		return PregacaoSaidaDto.listarPregacao(pregacoes);
+		return PregacaoSaidaDto.paginarPregacao(pregacoes);
 	}
 	
 	@PostMapping("/incluir")
